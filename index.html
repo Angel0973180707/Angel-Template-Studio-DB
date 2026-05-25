@@ -13,7 +13,9 @@ h1{margin:0;font-size:28px;}
 label{display:block;margin-top:12px;font-weight:700;}
 input,textarea,select{width:100%;box-sizing:border-box;padding:12px;border-radius:14px;border:1px solid #e6c998;margin-top:6px;font-size:15px;}
 textarea{min-height:90px;}
+#promptBox{min-height:260px;background:#fffdf8;font-size:14px;line-height:1.7;}
 button{width:100%;margin-top:14px;border:0;border-radius:16px;padding:13px;background:#d98b2b;color:white;font-size:16px;font-weight:800;}
+button.secondary{background:#8a5a20;}
 button:disabled{opacity:.55;}
 .card{border-radius:26px;padding:28px;background:linear-gradient(160deg,#fffaf0,#ffe7b7);min-height:420px;border:1px solid #f0cf95;}
 .tag{display:inline-block;background:#8a5a20;color:white;padding:6px 12px;border-radius:99px;font-size:13px;}
@@ -27,6 +29,7 @@ a{color:#9b5a08;font-weight:800;word-break:break-all;}
 @media(max-width:820px){.wrap{grid-template-columns:1fr;}}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -37,6 +40,7 @@ a{color:#9b5a08;font-weight:800;word-break:break-all;}
 <div class="wrap">
 
 <div class="box" id="editor">
+
 <label>母版類型</label>
 <select id="type">
 <option value="poster">活動海報</option>
@@ -69,10 +73,17 @@ a{color:#9b5a08;font-weight:800;word-break:break-all;}
 <input id="cta" value="立即報名">
 
 <button onclick="render()">更新預覽</button>
+<button class="secondary" onclick="generatePrompt()">產生成品 AI 協作指令</button>
+
+<label>AI 協作指令</label>
+<textarea id="promptBox" placeholder="按上方按鈕後，AI 協作指令會出現在這裡"></textarea>
+<button class="secondary" onclick="copyPrompt()">複製 AI 協作指令</button>
+
 <button onclick="submitData()">儲存並產生連結</button>
 
 <div class="success" id="successBox"></div>
 <div class="error" id="errorBox"></div>
+
 </div>
 
 <div class="box">
@@ -147,6 +158,90 @@ function render(data){
   }
 
   $('output').innerHTML = html;
+}
+
+function generatePrompt(){
+  const d = getData();
+
+  const prompt = `
+你是一位「幸福天使品牌設計與網頁成品產出助理」。
+
+請根據以下客戶資料，產出可直接交付客戶使用的正式成品內容。
+
+一、母版類型
+type：${d.type}
+類型名稱：${typeName[d.type]}
+
+類型說明：
+poster＝活動海報文案
+signup＝報名頁內容
+order＝訂購單內容
+card＝簡易名片內容
+plan＝活動企劃書
+promo＝活動宣傳文案
+
+二、請你不要只是照抄資料，而是要幫我：
+1. 修正文案語氣
+2. 加強吸引力
+3. 補足商業邏輯
+4. 讓內容更像正式成品
+5. 適合直接放到網頁、海報、LINE、社群或簡報
+
+三、請輸出以下 5 個區塊：
+
+【1｜成品主標】
+請產出一句有吸引力的主標。
+
+【2｜成品副標】
+請產出一句清楚定位的副標。
+
+【3｜完整成品文案】
+請依母版類型產出正式內容。
+
+【4｜行動呼籲 CTA】
+請產出 3 個 CTA 選項。
+
+【5｜網頁版區塊結構】
+請用以下格式整理，方便我貼回 HTML：
+
+hero_title：
+hero_subtitle：
+date：
+place：
+intro：
+highlights：
+cta_text：
+notice：
+
+四、風格要求
+整體風格請符合：
+溫暖、清楚、可信任、有畫面感、適合台灣客戶閱讀。
+不要太浮誇，不要太像廣告詐騙。
+文字要有溫度，也要能促成行動。
+
+五、客戶原始資料
+
+type：${d.type}
+title：${d.title}
+subtitle：${d.subtitle}
+date：${d.date}
+place：${d.place}
+content：${d.content}
+contact：${d.contact}
+cta：${d.cta}
+`;
+
+  $('promptBox').value = prompt.trim();
+}
+
+function copyPrompt(){
+  const text = $('promptBox').value;
+  if(!text){
+    alert('請先產生 AI 協作指令');
+    return;
+  }
+  navigator.clipboard.writeText(text);
+  alert('AI 協作指令已複製');
 }
 
 async function submitData(){
