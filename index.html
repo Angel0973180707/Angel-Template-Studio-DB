@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幸福天使｜母版產生器</title>
+<style>
+body{margin:0;font-family:"Noto Sans TC",sans-serif;background:#fff7ec;color:#3b2a1a;}
+header{text-align:center;padding:24px;background:linear-gradient(135deg,#ffe1aa,#fff7ec);}
+h1{margin:0;font-size:28px;}
+.wrap{max-width:1100px;margin:auto;padding:16px;display:grid;grid-template-columns:360px 1fr;gap:16px;}
+.box{background:white;border-radius:22px;padding:18px;box-shadow:0 8px 24px #0001;}
+label{display:block;margin-top:12px;font-weight:700;}
+input,textarea,select{width:100%;box-sizing:border-box;padding:12px;border-radius:14px;border:1px solid #e6c998;margin-top:6px;font-size:15px;}
+textarea{min-height:90px;}
+button{width:100%;margin-top:14px;border:0;border-radius:16px;padding:13px;background:#d98b2b;color:white;font-size:16px;font-weight:800;}
+button:disabled{opacity:.55;}
+.card{border-radius:26px;padding:28px;background:linear-gradient(160deg,#fffaf0,#ffe7b7);min-height:420px;border:1px solid #f0cf95;}
+.tag{display:inline-block;background:#8a5a20;color:white;padding:6px 12px;border-radius:99px;font-size:13px;}
+.title{font-size:32px;font-weight:900;margin:12px 0 6px;}
+.subtitle{font-size:18px;color:#80521d;}
+.section{background:#ffffffaa;border-radius:18px;padding:14px;margin-top:14px;line-height:1.8;}
+.cta{display:inline-block;margin-top:18px;background:#c06f18;color:white;padding:12px 20px;border-radius:99px;font-weight:900;}
+.success{background:#eef9ee;border:1px solid #8ac98a;color:#245c24;padding:12px;border-radius:14px;margin-top:12px;display:none;line-height:1.7;}
+.error{background:#fff0f0;border:1px solid #e59a9a;color:#8a2424;padding:12px;border-radius:14px;margin-top:12px;display:none;line-height:1.7;}
+a{color:#9b5a08;font-weight:800;word-break:break-all;}
+@media(max-width:820px){.wrap{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+<h1>幸福天使｜客戶母版產生器</h1>
+<p>活動海報・報名表・訂購單・簡易名片・活動企劃・宣傳文案</p>
+</header>
+
+<div class="wrap">
+
+<div class="box" id="editor">
+<label>母版類型</label>
+<select id="type">
+<option value="poster">活動海報</option>
+<option value="signup">報名表</option>
+<option value="order">訂購單</option>
+<option value="card">簡易名片</option>
+<option value="plan">活動企劃</option>
+<option value="promo">活動宣傳文案</option>
+</select>
+
+<label>主標題</label>
+<input id="title" value="心文明健康旅療營">
+
+<label>副標</label>
+<input id="subtitle" value="三天兩夜養生淨食課程">
+
+<label>日期／時間</label>
+<input id="date" value="2026/6/1 - 6/3">
+
+<label>地點</label>
+<input id="place" value="高雄自然養生場域">
+
+<label>內容重點</label>
+<textarea id="content">共同備餐、養生淨食、咖啡道、能量拍砂、身心放鬆、夜話交流。</textarea>
+
+<label>聯絡／報名資訊</label>
+<textarea id="contact">請私訊客服報名，名額有限，額滿為止。</textarea>
+
+<label>CTA</label>
+<input id="cta" value="立即報名">
+
+<button onclick="render()">更新預覽</button>
+<button onclick="submitData()">儲存並產生連結</button>
+
+<div class="success" id="successBox"></div>
+<div class="error" id="errorBox"></div>
+</div>
+
+<div class="box">
+<div class="card" id="output"></div>
+</div>
+
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzbhBL4_if_I57sVgBeFpgtqa5B-UqIn6Nea77RLOZEeUIdDcs6E3D26v72py4UNqJA3Q/exec';
+
+const $ = id => document.getElementById(id);
+
+const typeName = {
+  poster:'活動海報',
+  signup:'報名表',
+  order:'訂購單',
+  card:'簡易名片',
+  plan:'活動企劃',
+  promo:'活動宣傳文案'
+};
+
+function getData(){
+  return {
+    type:$('type').value,
+    title:$('title').value,
+    subtitle:$('subtitle').value,
+    date:$('date').value,
+    place:$('place').value,
+    content:$('content').value,
+    contact:$('contact').value,
+    cta:$('cta').value,
+    baseUrl:location.origin + location.pathname
+  };
+}
+
+function safeText(v){
+  return String(v || '').replace(/\n/g,'<br>');
+}
+
+function render(data){
+  const d = data || getData();
+
+  let html = `
+    <span class="tag">${typeName[d.type] || '母版'}</span>
+    <div class="title">${d.title || ''}</div>
+    <div class="subtitle">${d.subtitle || ''}</div>
+    <div class="section">📅 ${d.date || ''}<br>📍 ${d.place || ''}</div>
+    <div class="section">${safeText(d.content)}</div>
+    <div class="section">${safeText(d.contact)}</div>
+    <div class="cta">${d.cta || '了解更多'}</div>
+  `;
+
+  if(d.type === 'signup'){
+    html += `<div class="section">報名欄位：姓名、電話、人數、備註、付款狀態</div>`;
+  }
+
+  if(d.type === 'order'){
+    html += `<div class="section">訂購欄位：姓名、電話、品項、數量、取貨方式、備註</div>`;
+  }
+
+  if(d.type === 'plan'){
+    html = `
+      <span class="tag">活動企劃</span>
+      <div class="title">${d.title || ''}</div>
+      <div class="subtitle">${d.subtitle || ''}</div>
+      <div class="section">一、活動目標<br>透過活動體驗，讓參與者獲得理解、感受與行動。</div>
+      <div class="section">二、活動資訊<br>時間：${d.date || ''}<br>地點：${d.place || ''}</div>
+      <div class="section">三、活動內容<br>${safeText(d.content)}</div>
+      <div class="section">四、報名方式<br>${safeText(d.contact)}</div>
+    `;
+  }
+
+  $('output').innerHTML = html;
+}
+
+async function submitData(){
+  $('successBox').style.display = 'none';
+  $('errorBox').style.display = 'none';
+
+  const btns = document.querySelectorAll('button');
+  btns.forEach(b=>b.disabled=true);
+
+  try{
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      body:JSON.stringify(getData())
+    });
+
+    const json = await res.json();
+
+    if(!json.ok) throw new Error(json.error || '未知錯誤');
+
+    $('successBox').style.display = 'block';
+    $('successBox').innerHTML = `
+      已產生成功！<br>
+      專屬連結：<br>
+      <a href="${json.url}" target="_blank">${json.url}</a>
+    `;
+
+  }catch(err){
+    $('errorBox').style.display = 'block';
+    $('errorBox').innerHTML = '產生失敗：' + err.message;
+  }finally{
+    btns.forEach(b=>b.disabled=false);
+  }
+}
+
+async function loadItem(){
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  if(!id) return;
+
+  $('editor').style.display = 'none';
+
+  try{
+    const res = await fetch(GAS_URL + '?action=getItem&id=' + encodeURIComponent(id));
+    const json = await res.json();
+
+    if(json.ok){
+      render(json.item);
+    }else{
+      $('output').innerHTML = '<div class="section">找不到這筆資料</div>';
+    }
+  }catch(err){
+    $('output').innerHTML = '<div class="section">讀取失敗：' + err.message + '</div>';
+  }
+}
+
+['type','title','subtitle','date','place','content','contact','cta'].forEach(id=>{
+  $(id).addEventListener('input',()=>render());
+  $(id).addEventListener('change',()=>render());
+});
+
+render();
+loadItem();
+</script>
+
+</body>
+</html>
